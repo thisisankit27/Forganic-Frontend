@@ -7,6 +7,9 @@ import sys
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ecommerceFrontend.settings')
+    if len(sys.argv) > 1 and sys.argv[1] == 'runserver' and len(sys.argv) == 2:
+        from django.core.management.commands.runserver import Command as runserver
+        runserver.default_port = "1727"  # Set the default port to 2727
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
