@@ -24,3 +24,6 @@ def signin(request):
 
 def get_details(request):
     return render(request, 'Authentication/get-details.html')
+
+def forget_password(request):
+    return render(request, 'Authentication/forget-password.html')
