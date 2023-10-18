@@ -1,0 +1,66 @@
+<!-- authentication_frontend/templates/get-details.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Details</title>
+</head>
+
+<body>
+    <h1>Get Details</h1>
+    <button type="button" onclick="getDetails()">Get Details</button>
+
+    <div id="detailsContainer"></div>
+
+    <button type="button" onclick="logout()">Logout</button>
+
+    <script>
+        async function getDetails() {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                alert('Authentication token not found. Please sign in.');
+                return;
+            }
+
+            const url = 'http://127.0.0.1:8000/Authentication/get-details/';
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Token ${token}`
+                    },
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Display the details
+                    const detailsContainer = document.getElementById('detailsContainer');
+                    detailsContainer.innerHTML = `
+                        <p>ID: ${result.id}</p>
+                        <p>First Name: ${result.first_name}</p>
+                        <p>Last Name: ${result.last_name}</p>
+                        <p>Username: ${result.username}</p>
+                    `;
+                } else {
+                    // Display error messages
+                    const detailsContainer = document.getElementById('detailsContainer');
+                    detailsContainer.innerHTML = `<p>Error: ${result.detail}</p>`;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function logout() {
+            // Delete the token from local storage
+            localStorage.removeItem('authToken');
+            // Refresh the page
+            location.reload();
+        }
+    </script>
+</body>
+
+</html>

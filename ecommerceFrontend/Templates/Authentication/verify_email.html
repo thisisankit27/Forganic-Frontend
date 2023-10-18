@@ -6,33 +6,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verify Email OTP</title>
+    <style>
+        #otpContainer {
+            display: none;
+        }
+
+        #loginButton {
+            display: none;
+        }
+    </style>
 </head>
 
 <body>
     <h1>Verify Email OTP</h1>
     <form id="verifyEmailForm">
         {% csrf_token %}
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required>
-        <br>
 
-        <button type="button" onclick="sendOTP()">Send OTP</button>
+        <button type="button" id="sendOTPButton" onclick="sendOTP()">Send OTP</button>
         <br>
+        <div id="otpContainer">
+            <label for="otp">Enter OTP:</label>
+            <input type="text" id="otp" name="otp" required>
+            <br>
 
-        <label for="otp">Enter OTP:</label>
-        <input type="text" id="otp" name="otp" required>
-        <br>
+            <button type="button" onclick="verifyOTP()">Verify OTP</button>
+        </div>
 
-        <button type="button" onclick="verifyOTP()">Verify OTP</button>
+        <button type="button" id="loginButton" onclick="redirectToLogin()">Login</button>
     </form>
 
     <div id="errorMessages"></div>
 
     <script>
         let emailVerificationToken; // Variable to store the token
+        let canResend = true;
 
         async function sendOTP() {
-            const email = document.getElementById('email').value;
+            const email = '{{ email }}';
             const url = 'http://127.0.0.1:8000/Authentication/verify-email/';
             const formData = new FormData();
             formData.append('email', email);
@@ -48,7 +58,26 @@
                 if (response.ok) {
                     // Store the token
                     emailVerificationToken = result.token;
+                    // Show the OTP input and Verify OTP button
+                    document.getElementById('otpContainer').style.display = 'block';
+
+                    // Rename the button to "Resend OTP" after the first click
+                    document.getElementById('sendOTPButton').textContent = 'Resend OTP';
+
+                    // Disable resending for 1 minute
+                    canResend = false;
+                    setTimeout(() => {
+                        canResend = true;
+                    }, 60000); // 1 minute in milliseconds
                 }
+
+                // If email is verified, hide resend OTP, verify OTP form field, and button
+                if (result.email_verified) {
+                    document.getElementById('otpContainer').style.display = 'none';
+                    document.getElementById('sendOTPButton').style.display = 'none';
+                    document.getElementById('loginButton').style.display = 'block';
+                }
+
                 displayError(result.message);
             } catch (error) {
                 console.error('Error:', error);
@@ -56,7 +85,6 @@
         }
 
         async function verifyOTP() {
-            const email = document.getElementById('email').value;
             const otp = document.getElementById('otp').value;
             const url = 'http://127.0.0.1:8000/Authentication/verify-email-otp/';
             const formData = new FormData();
@@ -70,10 +98,23 @@
                 });
 
                 const result = await response.json();
+
+                // If email is verified, hide resend OTP, verify OTP form field, and button
+                if (result.email_verified) {
+                    document.getElementById('otpContainer').style.display = 'none';
+                    document.getElementById('sendOTPButton').style.display = 'none';
+                    document.getElementById('loginButton').style.display = 'block';
+                }
+
                 displayError(result.message);
             } catch (error) {
                 console.error('Error:', error);
             }
+        }
+
+        function redirectToLogin() {
+            // Add logic to redirect to the login page
+            window.location.href = '/signin/';
         }
 
         function displayError(errorMessage) {

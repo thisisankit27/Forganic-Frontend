@@ -1,50 +1,35 @@
-<!-- authentication_frontend/templates/registration.html -->
+<!-- authentication_frontend/templates/signin.html -->
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registration</title>
+    <title>Sign In</title>
 </head>
 
 <body>
-    <h1>Registration</h1>
-    <form id="registrationForm">
+    <h1>Sign In</h1>
+    <form id="signinForm">
         {% csrf_token %}
-        <label for="first_name">First Name:</label>
-        <input type="text" id="first_name" name="first_name" required>
-        <br>
-
-        <label for="last_name">Last Name:</label>
-        <input type="text" id="last_name" name="last_name" required>
-        <br>
 
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" autocomplete="username" required>
         <br>
 
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required>
-        <br>
-
         <label for="password">Password:</label>
-        <input type="password" id="password" name="password" autocomplete="new-password" required>
+        <input type="password" id="password" name="password" autocomplete="current-password" required>
         <br>
 
-        <label for="password2">Confirm Password:</label>
-        <input type="password" id="password2" name="password2" autocomplete="new-password" required>
-        <br>
-
-        <button type="button" onclick="register()">Register</button>
+        <button type="button" onclick="signin()">Sign In</button>
     </form>
 
     <div id="errorMessages"></div>
 
     <script>
-        async function register() {
-            const url = 'http://127.0.0.1:8000/Authentication/register/';
-            const formData = new FormData(document.getElementById('registrationForm'));
+        async function signin() {
+            const url = 'http://127.0.0.1:8000/api-token-auth/';
+            const formData = new FormData(document.getElementById('signinForm'));
 
             try {
                 const response = await fetch(url, {
@@ -55,12 +40,16 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    // Registration successful, redirect to verify_email.html with email as a parameter
-                    const email = document.getElementById('email').value;
-                    // console.log('Registration successful:', result);
-                    window.location.href = `/verify-email/?email=${encodeURIComponent(email)}`;
+                    // Signin successful, store the received token for future use
+                    const token = result.token;
+                    localStorage.setItem('authToken', token);
+
+                    // You can redirect to another page or perform other actions
+                    // console.log('Signin successful. Token:', token);
+                    window.location.href = '/home/';
                 } else {
                     // Display error messages
+                    console.log('Error:', result);
                     const errorMessagesDiv = document.getElementById('errorMessages');
                     errorMessagesDiv.innerHTML = '';
 
