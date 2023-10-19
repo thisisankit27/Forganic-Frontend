@@ -1,0 +1,107 @@
+<!-- itemAdmin.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item Admin</title>
+</head>
+
+<body>
+    <h1>Create a New Item</h1>
+
+    <form id="createItemForm">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+        <br>
+
+        <label for="price">Price:</label>
+        <input type="number" id="price" name="price" step="0.01" required>
+        <br>
+
+        <label for="description">Description:</label>
+        <textarea id="description" name="description" rows="4" required></textarea>
+        <br>
+
+        <label for="discountAmount">Discount Amount (%):</label>
+        <input type="number" id="discountAmount" name="discount_amount" step="0.01">
+        <br>
+
+        <label for="availability">Availability:</label>
+        <input type="checkbox" id="availability" name="availability" value="true">
+        <br>
+
+        <button type="button" onclick="createNewItem()">Create Item</button>
+    </form>
+
+    <div id="errorMessages"></div>
+
+    <script>
+        function createNewItem() {
+            const token = localStorage.getItem('token'); // Retrieve token from local storage
+
+            const name = document.getElementById('name').value;
+            const price = document.getElementById('price').value;
+            const description = document.getElementById('description').value;
+            const discountAmount = document.getElementById('discountAmount').value;
+            const availability = document.getElementById('availability').value;
+
+            const url = 'http://127.0.0.1:8000/api/items/';
+            const formData = {
+                name: name,
+                price: price,
+                description: description,
+                discount_amount: discountAmount,
+                availability: availability
+            };
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${token}`
+                },
+                body: JSON.stringify(formData)
+            })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.id) {
+                        // Item created successfully
+                        console.log('Item created successfully:', result);
+                        displaySuccess('Item created successfully!');
+                        displayRedirectButton(result.id);
+                    } else {
+                        // Error in creating item
+                        console.error('Error creating item:', result.message);
+                        displayError('Error creating item: ' + result.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    displayError('Error: ' + error.message);
+                });
+        }
+
+        function displayError(errorMessage) {
+            const errorMessagesDiv = document.getElementById('errorMessages');
+            errorMessagesDiv.innerHTML = `<p style="color: red;">${errorMessage}</p>`;
+        }
+
+        function displaySuccess(successMessage) {
+            const errorMessagesDiv = document.getElementById('errorMessages');
+            errorMessagesDiv.innerHTML = `<p style="color: green;">${successMessage}</p>`;
+        }
+        function displayRedirectButton(itemId) {
+            const redirectButton = document.createElement('button');
+            redirectButton.textContent = 'View Item Details';
+            redirectButton.onclick = function () {
+                window.open(`/itemDetail/?item-id=${itemId}`, '_blank');
+            };
+
+            document.body.appendChild(redirectButton);
+        }
+    </script>
+</body>
+
+</html>

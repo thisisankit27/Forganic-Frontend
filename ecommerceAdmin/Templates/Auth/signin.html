@@ -1,0 +1,74 @@
+<!-- authentication_frontend/templates/signin.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In</title>
+</head>
+
+<body>
+    <h1>Sign In</h1>
+    <form id="signinForm">
+        {% csrf_token %}
+
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" autocomplete="username" required>
+        <br>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" autocomplete="current-password" required>
+        <br>
+
+        <button type="button" onclick="signin()">Sign In</button>
+    </form>
+
+    <div id="errorMessages"></div>
+
+    <script>
+        async function signin() {
+            const url = 'http://127.0.0.1:8000/api-token-auth/';
+            const formData = new FormData(document.getElementById('signinForm'));
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Signin successful, store the received token for future use
+                    const token = result.token;
+                    localStorage.setItem('token', token);
+
+                    // You can redirect to another page or perform other actions
+                    // console.log('Signin successful. Token:', token);
+                    window.location.href = '/home/';
+                } else {
+                    // Display error messages
+                    console.log('Error:', result);
+                    const errorMessagesDiv = document.getElementById('errorMessages');
+                    errorMessagesDiv.innerHTML = '';
+
+                    for (const key in result) {
+                        if (Object.hasOwnProperty.call(result, key)) {
+                            const errors = result[key];
+                            errors.forEach(error => {
+                                const errorMessage = document.createElement('p');
+                                errorMessage.textContent = `${key}: ${error}`;
+                                errorMessagesDiv.appendChild(errorMessage);
+                            });
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+
+</html>

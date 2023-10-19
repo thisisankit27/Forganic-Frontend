@@ -1,0 +1,172 @@
+<!-- templates/item.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item Detail</title>
+</head>
+
+<body>
+
+    <h1>Item Detail</h1>
+
+    <div id="item-details"></div>
+
+    <div id="update-item-form">
+        <h2>Update Item</h2>
+        <form id="putForm">
+            <!-- Fields for updating item details -->
+            <label for="updateName">Name:</label>
+            <input type="text" id="updateName" name="name" required>
+            <br>
+
+            <label for="updatePrice">Price:</label>
+            <input type="number" id="updatePrice" name="price" step="0.01" required>
+            <br>
+
+            <label for="updateDescription">Description:</label>
+            <textarea id="updateDescription" name="description" rows="4" required></textarea>
+            <br>
+
+            <label for="updateDiscountAmount">Discount Amount (%):</label>
+            <input type="number" id="updateDiscountAmount" name="discount_amount" step="0.01">
+            <br>
+
+            <!-- New field for updating availability -->
+            <label for="updateAvailability">Availability:</label>
+            <input type="checkbox" id="updateAvailability" name="availability">
+            <br>
+
+            <button type="button" onclick="updateItem()">Update Item</button>
+        </form>
+    </div>
+
+    <div id="delete-item">
+        <button type="button" onclick="deleteItem()">Delete Item</button>
+    </div>
+
+    <!-- New div elements for displaying messages -->
+    <div id="error-message" style="color: red;"></div>
+    <div id="success-message" style="color: green;"></div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const itemDetailsContainer = document.getElementById("item-details");
+
+            // Get the item ID from the Django template context
+            const itemId = "{{ item_id }}";
+
+            // Fetch detailed information for the specific item
+            fetch(`http://127.0.0.1:8000/api/items/${itemId}/`)
+                .then(response => response.json())
+                .then(item => {
+                    // Display item details
+
+                    // Update item form fields
+                    document.getElementById("updateName").value = item.name;
+                    document.getElementById("updatePrice").value = item.price;
+                    document.getElementById("updateDescription").value = item.description;
+                    document.getElementById("updateDiscountAmount").value = item.discount_amount;
+                    document.getElementById("updateAvailability").checked = item.availability;
+
+                    // ...
+
+                    const itemDiv = document.createElement("div");
+                    itemDiv.innerHTML = `
+                        <h2>${item.name}</h2>
+                        <p>ID: ${item.id}</p>
+                        <p>Price: $${item.price}</p>
+                        <p>Description: ${item.description}</p>
+                        <p>Discount Amount: $${item.discount_amount}</p>
+                        <p>Availability: ${item.availability ? 'Available' : 'Not Available'}</p>
+                        <p>Rating: ${item.rating}</p>
+                        <hr>
+                    `;
+
+                    itemDetailsContainer.appendChild(itemDiv);
+                })
+                .catch(error => console.error("Error fetching item details:", error));
+        });
+
+        function updateItem() {
+            const token = localStorage.getItem('token');
+
+            const itemId = "{{ item_id }}";
+            const updateName = document.getElementById("updateName").value;
+            const updatePrice = document.getElementById("updatePrice").value;
+            const updateDescription = document.getElementById("updateDescription").value;
+            const updateDiscountAmount = document.getElementById("updateDiscountAmount").value;
+            const updateAvailability = document.getElementById("updateAvailability").checked;
+
+            // Reset messages
+            document.getElementById("error-message").innerText = "";
+            document.getElementById("success-message").innerText = "";
+
+            fetch(`http://127.0.0.1:8000/api/items/${itemId}/`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token ${token}`
+                },
+                body: JSON.stringify({
+                    name: updateName,
+                    price: updatePrice,
+                    description: updateDescription,
+                    discount_amount: updateDiscountAmount,
+                    availability: updateAvailability,
+                }),
+            })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error(`Failed to update item: ${response.statusText}`);
+                    }
+                })
+                .then(result => {
+                    console.log('Item updated successfully:', result);
+                    // You might want to update the displayed item details here
+                    document.getElementById("success-message").innerText = "Item updated successfully!";
+                })
+                .catch(error => {
+                    console.error('Error updating item:', error);
+                    document.getElementById("error-message").innerText = `Error updating item: ${error.message}`;
+                });
+        }
+
+        function deleteItem() {
+            const token = localStorage.getItem('token');
+            const itemId = "{{ item_id }}";
+
+            // Reset messages
+            document.getElementById("error-message").innerText = "";
+            document.getElementById("success-message").innerText = "";
+
+            fetch(`http://127.0.0.1:8000/api/items/${itemId}/`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Token ${token}`
+                }
+            })
+                .then(response => {
+                    if (response.ok) {
+                        console.log('Item deleted successfully.');
+                        // You might want to redirect to a different page or handle the deletion UI
+                        document.getElementById("success-message").innerText = "Item deleted successfully!";
+                    } else {
+                        throw new Error(`Failed to delete item: ${response.statusText}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting item:', error);
+                    document.getElementById("error-message").innerText = `Error deleting item: ${error.message}`;
+                });
+        }
+    </script>
+
+</body>
+
+</html>
