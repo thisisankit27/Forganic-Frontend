@@ -1,0 +1,57 @@
+<!-- templates/article-detail.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Article Detail</title>
+</head>
+
+<body>
+
+    <h1>Article Detail</h1>
+
+    <div id="article-details"></div>
+
+    <button id="view-item-button">View Item</button>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const articleDetailsContainer = document.getElementById("article-details");
+            const viewItemButton = document.getElementById("view-item-button");
+
+            // Get the article ID from the Django template context
+            const articleId = "{{ article_id }}";
+
+            // Fetch detailed information for the specific article
+            fetch(`http://127.0.0.1:8000/articles/${articleId}/`)
+                .then(response => response.json())
+                .then(article => {
+                    const articleDiv = document.createElement("div");
+                    articleDiv.innerHTML = `
+                        <h2>${article.title}</h2>
+                        <p>ID: ${article.id}</p>
+                        <p>Short Description: ${article.short_description}</p>
+                        <p>Description: ${article.description}</p>
+                        <p>Created At: ${article.created_at}</p>
+                        <p>Item ID: ${article.item_id}</p>
+                        <hr>
+                    `;
+
+                    articleDetailsContainer.appendChild(articleDiv);
+
+                    // Add click event to the "View Item" button
+                    viewItemButton.addEventListener("click", function () {
+                        // Redirect to the Django item view with the item ID via a GET request
+                        window.open(`/itemDetail/?item-id=${article.item_id}`, '_blank');
+                    });
+                })
+                .catch(error => console.error("Error fetching article details:", error));
+        });
+    </script>
+
+</body>
+
+</html>
