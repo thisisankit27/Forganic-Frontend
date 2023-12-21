@@ -25,7 +25,7 @@
     </form>
 
     <div id="errorMessages"></div>
-
+    <button type="button" onclick="signout()">Sign Out</button>
     <script>
         async function signin() {
             const url = 'http://127.0.0.1:8000/api-token-auth/';
@@ -68,6 +68,15 @@
                 console.error('Error:', error);
             }
         }
+        function signout() {
+            // Remove the token from local storage
+            localStorage.removeItem('token');
+
+            // You can redirect to the signin page or perform other actions
+            // For example, redirect to the signin page after signing out
+            window.location.href = '/';
+        }
+    </script>
     </script>
 </body>
 
